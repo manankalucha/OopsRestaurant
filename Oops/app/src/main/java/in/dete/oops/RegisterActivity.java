@@ -113,12 +113,11 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
 
     private boolean ValidatePhone(String phone) {
         final boolean[] flag = {false};
-
         final DatabaseReference rootref = FirebaseDatabase.getInstance().getReference();
         rootref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.child("Users").child(phone).exists()) {
+                if (!(dataSnapshot.child("Users").child(phone).exists())) {
                     Toast.makeText(RegisterActivity.this, "This " + phone + "already exists", Toast.LENGTH_SHORT).show();
                     progressDialog.dismiss();
                     Toast.makeText(RegisterActivity.this, "Please try using another Phone Number", Toast.LENGTH_SHORT).show();
@@ -131,7 +130,6 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         });
         return flag[0];
