@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -33,7 +32,7 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
     private String user_email, fullName, phone, user_password, user_confirm_password;
     private ProgressDialog progressDialog;
     private FirebaseAuth firebaseAuth;
-    private int type;
+    private int type = 1;
     private int selection;//1 for User, 2 for Delivery Boy
 
 
@@ -65,49 +64,53 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
     }
 
     private void CreateAccount() {
-        if (Validate()) {
+
+        user_email = etEmailLogin.getText().toString().trim();
+        user_password = etPasswordLogin.getText().toString().trim();
+        user_confirm_password = etConfirmPassword.getText().toString().trim();
+        phone = etPhoneLogin.getText().toString().trim();
+        fullName = etFullName.getText().toString().trim();
+
+        if (Validate() && ValidatePhone(phone)) {
             progressDialog.setMessage("Creating Account...");
             progressDialog.setMessage("Please wait while we are checking the credentials...");
             progressDialog.setCanceledOnTouchOutside(false);
             progressDialog.show();
-            user_email = etEmailLogin.getText().toString().trim();
-            user_password = etPasswordLogin.getText().toString().trim();
-            user_confirm_password = etConfirmPassword.getText().toString().trim();
-            phone = etPhoneLogin.getText().toString().trim();
-            fullName = etFullName.getText().toString().trim();
-            if (ValidatePhone(phone)) {
-                firebaseAuth.createUserWithEmailAndPassword(user_email, user_password)
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                progressDialog.dismiss();
-                                if (task.isSuccessful()) {
-                                    firebaseAuth.getCurrentUser().sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
 
-                                                startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                                                ValidatephoneNumber(fullName, user_email, phone, user_password, type);
-                                                Toast.makeText(RegisterActivity.this, "Registered successfully, Please verify your email.", Toast.LENGTH_LONG).show();
-                                            } else {
-                                                Toast.makeText(RegisterActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                            }
+            firebaseAuth.createUserWithEmailAndPassword(user_email, user_password)
+                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            progressDialog.dismiss();
+                            if (task.isSuccessful()) {
+                                firebaseAuth.getCurrentUser().sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                                            UpdateDetails(fullName, user_email, phone, user_password, type);
+                                            Toast.makeText(RegisterActivity.this, "Registered successfully, Please verify your email.", Toast.LENGTH_LONG).show();
+                                        } else {
+                                            Toast.makeText(RegisterActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
                                         }
-                                    });
-                                } else {
-                                    Toast.makeText(RegisterActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                }
+                                    }
+                                });
+                            } else {
+                                Toast.makeText(RegisterActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
                             }
+                        }
 
-                        });
-            }
-        } else {
-            progressDialog.dismiss();
-            Toast.makeText(this, "Please enter all the details", Toast.LENGTH_SHORT).show();
-        }
+                    });
+        } else
 
+    {
+        progressDialog.dismiss();
+        Toast.makeText(this, "Please enter all the details", Toast.LENGTH_SHORT).show();
     }
+
+}
+
+
 
     private boolean ValidatePhone(String phone) {
         final boolean[] flag = {false};
@@ -119,8 +122,9 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
                     Toast.makeText(RegisterActivity.this, "This " + phone + "already exists", Toast.LENGTH_SHORT).show();
                     progressDialog.dismiss();
                     Toast.makeText(RegisterActivity.this, "Please try using another Phone Number", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                     flag[0] = false;
+                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+
                 } else {
                     flag[0] = true;
                 }
@@ -133,12 +137,12 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
         return flag[0];
     }
 
-    private void ValidatephoneNumber(String fullName, String user_email, String phone, String user_password, int type) {
+    private void UpdateDetails(String fullName, String user_email, String phone, String user_password, int type) {
         final DatabaseReference rootref = FirebaseDatabase.getInstance().getReference();
         HashMap<String, Object> map = new HashMap<>();
         map.put("n", fullName);
         map.put("e", user_email);
-        map.put("t", type);
+        //map.put("t", type);
         map.put("m", phone);
         map.put("p", user_password);
         rootref.child("Users").child(phone).updateChildren(map)
