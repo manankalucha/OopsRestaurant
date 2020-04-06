@@ -76,8 +76,6 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
             phone = etPhoneLogin.getText().toString().trim();
             fullName = etFullName.getText().toString().trim();
             if (ValidatePhone(phone)) {
-
-
                 firebaseAuth.createUserWithEmailAndPassword(user_email, user_password)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
