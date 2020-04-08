@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Oops</string>
+    <string name="Onbaording_screen_one_heading">Find Your Flatmates</string>
+    <string name="Onbaording_screen_two_heading">Find Your home</string>
+    <string name="Onbaording_screen_three_heading">Manage Staff and Visitors</string>
+    <string name="Onbaording_screen_one_subheading">List your Flat and Find flatmates</string>
+    <string name="Onbaording_screen_two_subheading">Find a flat that suits your needs</string>
+    <string name="Onbaording_screen_three_subheading">Manage all your daily staff and visitors on a click</string>
+    <string name="facebook_app_id">1082403155469421</string>
+    <string name="fb_login_protocol_scheme">fb1082403155469421</string>
+    <string name="don_t_have_an_account">Don\'t have an account?</string>
+    <string name="by_proceeding_you_agree_with_swiftcash">By proceeding you agree with SwiftCash</string>
+    <string name="welcome">Welcome</string>
+    <string name="please_sign_up_for_swiftcash">Please sign up for SwiftCash</string>
+
 </resources>

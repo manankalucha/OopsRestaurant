@@ -5,13 +5,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.esotericsoftware.minlog.Log;
+import com.facebook.login.Login;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -27,14 +32,15 @@ import java.util.HashMap;
 public class RegisterActivity extends AppCompatActivity implements GestureDetector.OnGestureListener {
 
     private Button btnUser, btnDeliveryBoy, btnSignUp;
-    Button btnRegister;
-    EditText etFullName, etEmailLogin, etPhoneLogin, etPasswordLogin, etConfirmPassword;
+    private Button btnRegister;
+    private ImageView btnBack;
+    private EditText etFullName, etEmailLogin, etPhoneLogin, etPasswordLogin, etConfirmPassword;
     private String user_email, fullName, phone, user_password, user_confirm_password;
     private ProgressDialog progressDialog;
     private FirebaseAuth firebaseAuth;
-    private int type = 1;
     private int selection;//1 for User, 2 for Delivery Boy
-
+    private GestureDetector gestureDetector;
+    private TextView tvLogIn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +52,12 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
         etPhoneLogin = findViewById(R.id.etPhone);
         etPasswordLogin = findViewById(R.id.etPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
-
-//        btnUser = findViewById(R.id.btnUser);
-//        btnDeliveryBoy = findViewById(R.id.btnDeliveryBoy);
-//        selection = 1;
+        btnBack = findViewById(R.id.btnBack);
+        btnUser = findViewById(R.id.btnUser);
+        btnDeliveryBoy = findViewById(R.id.btnDeliveryBoy);
+        selection = 1;
+tvLogIn = findViewById(R.id.tvLogIn);
+        gestureDetector = new GestureDetector(this);
 
         firebaseAuth = FirebaseAuth.getInstance();
         progressDialog = new ProgressDialog(this);
@@ -61,6 +69,15 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
             CreateAccount();
         });
 
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(intent);
+        });
+
+        tvLogIn.setOnClickListener(v -> {
+            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void CreateAccount() {
@@ -71,8 +88,8 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
         phone = etPhoneLogin.getText().toString().trim();
         fullName = etFullName.getText().toString().trim();
 
-        if (Validate() && ValidatePhone(phone)) {
-            progressDialog.setMessage("Creating Account...");
+        if (Validate()) {
+            progressDialog.setTitle("Creating Account...");
             progressDialog.setMessage("Please wait while we are checking the credentials...");
             progressDialog.setCanceledOnTouchOutside(false);
             progressDialog.show();
@@ -87,8 +104,8 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if (task.isSuccessful()) {
-                                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                                            UpdateDetails(fullName, user_email, phone, user_password, type);
+                                            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                            UpdateDetails(fullName, user_email, phone, user_password, selection);
                                             Toast.makeText(RegisterActivity.this, "Registered successfully, Please verify your email.", Toast.LENGTH_LONG).show();
                                         } else {
                                             Toast.makeText(RegisterActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
@@ -112,48 +129,51 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
 
 
 
-    private boolean ValidatePhone(String phone) {
-        final boolean[] flag = {false};
-        final DatabaseReference rootref = FirebaseDatabase.getInstance().getReference();
-        rootref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!(dataSnapshot.child("Users").child(phone).exists())) {
-                    Toast.makeText(RegisterActivity.this, "This " + phone + "already exists", Toast.LENGTH_SHORT).show();
-                    progressDialog.dismiss();
-                    Toast.makeText(RegisterActivity.this, "Please try using another Phone Number", Toast.LENGTH_SHORT).show();
-                    flag[0] = false;
-                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-
-                } else {
-                    flag[0] = true;
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-        return flag[0];
-    }
-
+//    private boolean ValidatePhone(String phone) {
+//        final boolean[] flag = {false};
+//        final DatabaseReference rootref = FirebaseDatabase.getInstance().getReference();
+//        rootref.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                if (!(dataSnapshot.child("Users").child(phone).exists())) {
+//                    Toast.makeText(RegisterActivity.this, "This " + phone + "already exists", Toast.LENGTH_SHORT).show();
+//                    progressDialog.dismiss();
+//                    Toast.makeText(RegisterActivity.this, "Please try using another Phone Number", Toast.LENGTH_SHORT).show();
+//                    flag[0] = false;
+//                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+//
+//                } else {
+//                    flag[0] = true;
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//            }
+//        });
+//        return flag[0];
+//    }
+//
     private void UpdateDetails(String fullName, String user_email, String phone, String user_password, int type) {
-        final DatabaseReference rootref = FirebaseDatabase.getInstance().getReference();
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("n", fullName);
-        map.put("e", user_email);
-        //map.put("t", type);
-        map.put("m", phone);
-        map.put("p", user_password);
-        rootref.child("Users").child(phone).updateChildren(map)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(RegisterActivity.this, "Details updated", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
+
+        User user = new User(user_email, fullName, user_password, phone);
+        FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(user);
+
+//        HashMap<String, Object> map = new HashMap<>();
+//        map.put("n", fullName);
+//        map.put("e", user_email);
+//        map.put("t", type);
+//        map.put("m", phone);
+//        map.put("p", user_password);
+//        rootref.child("Users").child(firebaseAuth.getCurrentUser().getUid()).updateChildren(map)
+//                .addOnCompleteListener(new OnCompleteListener<Void>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<Void> task) {
+//                        if (task.isSuccessful()) {
+//                            Toast.makeText(RegisterActivity.this, "Details updated", Toast.LENGTH_LONG).show();
+//                        }
+//                    }
+//                });
     }
 
     private boolean Validate() {
@@ -185,49 +205,69 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
 
 
     @Override
-    public boolean onDown(MotionEvent e) {
+    public boolean onDown(MotionEvent motionEvent) {
         return false;
     }
 
     @Override
-    public void onShowPress(MotionEvent e) {
+    public void onShowPress(MotionEvent motionEvent) {
 
     }
 
     @Override
-    public boolean onSingleTapUp(MotionEvent e) {
+    public boolean onSingleTapUp(MotionEvent motionEvent) {
         return false;
     }
 
     @Override
-    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+    public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
         return false;
     }
 
     @Override
-    public void onLongPress(MotionEvent e) {
+    public void onLongPress(MotionEvent motionEvent) {
 
     }
 
     @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        return false;
+    public boolean onFling(MotionEvent motionEvent, MotionEvent moveEvent, float velocityX, float velocityY) {
+        boolean result = false;
+        float diffX = moveEvent.getX() - motionEvent.getX();
+        if(diffX > 100) {
+            onSwipeLeft();
+            result = true;
+        }
+        return result;
     }
-//
-//    public void toggle(View v) {
-//        if (v.getId() == R.id.btnUser) {
-//            selection = 1;
-//            btnUser.setBackground(getResources().getDrawable(R.drawable.shaperect, null));
-//            btnUser.setTextColor(getResources().getColor(android.R.color.white, null));
-//            btnDeliveryBoy.setBackground(getResources().getDrawable(R.drawable.shape, null));
-//            btnDeliveryBoy.setTextColor(getResources().getColor(android.R.color.black, null));
-//        } else if (v.getId() == R.id.btnDeliveryBoy) {
-//            selection = 2;
-//            btnDeliveryBoy.setBackground(getResources().getDrawable(R.drawable.shaperect, null));
-//            btnDeliveryBoy.setTextColor(getResources().getColor(android.R.color.white, null));
-//            btnUser.setBackground(getResources().getDrawable(R.drawable.shape, null));
-//            btnUser.setTextColor(getResources().getColor(android.R.color.black, null));
-//        }
-//    }
+
+    private void onSwipeLeft() {
+        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+        startActivity(intent);
+    }
+
+    private void onSwipeRight() {
+
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        gestureDetector.onTouchEvent(event);
+        return super.onTouchEvent(event);
+    }
+        public void toggle(View v) {
+        if (v.getId() == R.id.btnUser) {
+            selection = 1;
+            btnUser.setBackground(getResources().getDrawable(R.drawable.shaperect, null));
+            btnUser.setTextColor(getResources().getColor(android.R.color.white, null));
+            btnDeliveryBoy.setBackground(getResources().getDrawable(R.drawable.shape, null));
+            btnDeliveryBoy.setTextColor(getResources().getColor(android.R.color.black, null));
+        } else if (v.getId() == R.id.btnDeliveryBoy) {
+            selection = 2;
+            btnDeliveryBoy.setBackground(getResources().getDrawable(R.drawable.shaperect, null));
+            btnDeliveryBoy.setTextColor(getResources().getColor(android.R.color.white, null));
+            btnUser.setBackground(getResources().getDrawable(R.drawable.shape, null));
+            btnUser.setTextColor(getResources().getColor(android.R.color.black, null));
+        }
+    }
 
 }

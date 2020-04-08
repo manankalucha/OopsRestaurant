@@ -1,6 +1,9 @@
 package in.dete.oops;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
+
     public String name, email, phone, password;
 
     public User()
