@@ -15,17 +15,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.esotericsoftware.minlog.Log;
-import com.facebook.login.Login;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.gson.Gson;
 
 import java.util.HashMap;
 
@@ -41,6 +37,7 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
     private int selection;//1 for User, 2 for Delivery Boy
     private GestureDetector gestureDetector;
     private TextView tvLogIn;
+    private boolean update;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,13 +53,16 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
         btnUser = findViewById(R.id.btnUser);
         btnDeliveryBoy = findViewById(R.id.btnDeliveryBoy);
         selection = 1;
-tvLogIn = findViewById(R.id.tvLogIn);
+        //update = getIntent().getBooleanExtra("update", false);
+
+        tvLogIn = findViewById(R.id.tvLogIn);
         gestureDetector = new GestureDetector(this);
 
         firebaseAuth = FirebaseAuth.getInstance();
         progressDialog = new ProgressDialog(this);
 
         btnRegister = findViewById(R.id.btnSignUp);
+
 
 
         btnRegister.setOnClickListener(v -> {
@@ -116,20 +116,13 @@ tvLogIn = findViewById(R.id.tvLogIn);
                                 Toast.makeText(RegisterActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
                             }
                         }
-
                     });
-        } else
-
-    {
-        progressDialog.dismiss();
-        Toast.makeText(this, "Please enter all the details", Toast.LENGTH_SHORT).show();
+        } else {
+            progressDialog.dismiss();
+            Toast.makeText(this, "Please enter all the details", Toast.LENGTH_SHORT).show();
+        }
     }
-
-}
-
-
-
-//    private boolean ValidatePhone(String phone) {
+    //    private boolean ValidatePhone(String phone) {
 //        final boolean[] flag = {false};
 //        final DatabaseReference rootref = FirebaseDatabase.getInstance().getReference();
 //        rootref.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -156,9 +149,29 @@ tvLogIn = findViewById(R.id.tvLogIn);
 //
     private void UpdateDetails(String fullName, String user_email, String phone, String user_password, int type) {
 
-        User user = new User(user_email, fullName, user_password, phone);
-        FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(user);
-
+//        User user = new User(user_email, fullName, user_password, phone, type);
+//        FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(user);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("n", fullName);
+        map.put("e", user_email);
+        map.put("m", phone);
+        map.put("s", type);
+        FirebaseFirestore.getInstance().collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .set(map, SetOptions.merge())
+                .addOnCompleteListener(task -> {
+                    progressDialog.dismiss();
+                    if(task.isSuccessful()){
+                        User userData = new User(fullName, phone, user_email, FirebaseAuth.getInstance().getCurrentUser().getUid(), null , null, type);
+                        userData.setUid(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        Utils.storeUserInfo(userData, RegisterActivity.this);
+                        Intent intent = new Intent(RegisterActivity.this, HomeActivity.class);
+                        intent.putExtra("user", userData);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
+                    else Toast.makeText(RegisterActivity.this, "Couldn't setup profile, try again later", Toast.LENGTH_SHORT).show();
+                });
+    }
 //        HashMap<String, Object> map = new HashMap<>();
 //        map.put("n", fullName);
 //        map.put("e", user_email);
@@ -174,7 +187,7 @@ tvLogIn = findViewById(R.id.tvLogIn);
 //                        }
 //                    }
 //                });
-    }
+//    }
 
     private boolean Validate() {
         boolean result = false;
@@ -233,7 +246,7 @@ tvLogIn = findViewById(R.id.tvLogIn);
     public boolean onFling(MotionEvent motionEvent, MotionEvent moveEvent, float velocityX, float velocityY) {
         boolean result = false;
         float diffX = moveEvent.getX() - motionEvent.getX();
-        if(diffX > 100) {
+        if (diffX > 100) {
             onSwipeLeft();
             result = true;
         }
@@ -254,7 +267,8 @@ tvLogIn = findViewById(R.id.tvLogIn);
         gestureDetector.onTouchEvent(event);
         return super.onTouchEvent(event);
     }
-        public void toggle(View v) {
+
+    public void toggle(View v) {
         if (v.getId() == R.id.btnUser) {
             selection = 1;
             btnUser.setBackground(getResources().getDrawable(R.drawable.shaperect, null));

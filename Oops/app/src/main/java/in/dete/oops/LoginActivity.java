@@ -2,11 +2,7 @@ package in.dete.oops;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -23,14 +19,12 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
-import com.facebook.appevents.AppEventsLogger;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -57,8 +51,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -228,11 +220,12 @@ public class LoginActivity extends AppCompatActivity implements GestureDetector.
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             Toast.makeText(LoginActivity.this, "Signed In successfully", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                             progressDialog.dismiss();
-
+                            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                            //intent.putExtra("update", true);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
                         } else {
-
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
                             String message = task.getException().toString();
                             SendUserToLoginActivity();
@@ -261,9 +254,13 @@ public class LoginActivity extends AppCompatActivity implements GestureDetector.
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_LONG).show();
-                            startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                            progressDialog.dismiss();
                             FirebaseUser user = firebaseAuth.getCurrentUser();
                             ivFacebook.setEnabled(true);
+                            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                            //intent.putExtra("update", true);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
                             // updateUI();
                         } else {
                             // If sign in fails, display a message to the user.
@@ -285,7 +282,7 @@ public class LoginActivity extends AppCompatActivity implements GestureDetector.
         if (ph == null) {
             progressDialog.dismiss();
             intent = new Intent(LoginActivity.this, RegisterActivity.class);
-            intent.putExtra("update", true);
+           // intent.putExtra("update", true);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } else {
