@@ -161,7 +161,7 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
                 .addOnCompleteListener(task -> {
                     progressDialog.dismiss();
                     if(task.isSuccessful()){
-                        User userData = new User(fullName, phone, user_email, FirebaseAuth.getInstance().getCurrentUser().getUid(), null , null, type);
+                        User userData = new User(fullName, phone, user_email, FirebaseAuth.getInstance().getCurrentUser().getUid(), null , null, type, null);
                         userData.setUid(FirebaseAuth.getInstance().getCurrentUser().getUid());
                         Utils.storeUserInfo(userData, RegisterActivity.this);
                         Intent intent = new Intent(RegisterActivity.this, HomeActivity.class);

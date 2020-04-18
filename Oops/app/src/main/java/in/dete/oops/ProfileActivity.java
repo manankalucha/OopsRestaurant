@@ -42,7 +42,7 @@ public class ProfileActivity extends AppCompatActivity {
     private User user;
     private EditText   email, phonenumber;
     private TextView save, birthdate, addId;
-    private String name, phone, email1, birth, gender1;
+    private String name, phone, email1, birth,address, gender1;
     ImageView btnBack;
     private EditText aptAddress;
     public static int AUTOCOMPLETE_ACTIVITY = 180;
@@ -129,7 +129,7 @@ public class ProfileActivity extends AppCompatActivity {
             if (validate()) {
                 final FirebaseFirestore db = FirebaseFirestore.getInstance();
                 final DocumentReference docRef = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                User user2 = new User(name, user.getPhone(), email1, FirebaseAuth.getInstance().getCurrentUser().getUid(), gender1, birth, 1);
+                User user2 = new User(name, user.getPhone(), email1, FirebaseAuth.getInstance().getCurrentUser().getUid(), gender1, birth, 1, address);
                 docRef.set(user2, SetOptions.merge()).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Utils.storeUserInfo(user2, ProfileActivity.this);
@@ -146,6 +146,7 @@ public class ProfileActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Place place = Autocomplete.getPlaceFromIntent(data);
                 aptAddress.setText(place.getName());
+                address = place.getAddress();
                 aptLoc = new GeoPoint(place.getLatLng().latitude, place.getLatLng().longitude);
                 // findViewById(R.id.addressExtraDetails).setVisibility(View.VISIBLE);
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
