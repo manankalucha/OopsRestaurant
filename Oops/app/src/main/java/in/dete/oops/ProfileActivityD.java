@@ -10,21 +10,29 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
@@ -40,7 +48,8 @@ public class ProfileActivityD extends AppCompatActivity {
     private String gender;
     private FirebaseUser firebaseUser;
     private User user;
-    private EditText   email, phonenumber;
+    private EditText email, phonenumber;
+    private FirebaseAuth firebaseAuth;
     private TextView save, birthdate, addId;
     private String name, phone, email1, birth, gender1, address;
     ImageView btnBack;
@@ -63,6 +72,7 @@ public class ProfileActivityD extends AppCompatActivity {
         user = Utils.fetchUserInfo(ProfileActivityD.this);
         fullname = findViewById(R.id.firstname);
         aptAddress = findViewById(R.id.aptAddress);
+        firebaseAuth = FirebaseAuth.getInstance();
 
         btnBack = findViewById(R.id.btnBack);
         birthdate = findViewById(R.id.birthdate);
@@ -95,27 +105,64 @@ public class ProfileActivityD extends AppCompatActivity {
             }
         });
 
-        User user = Utils.fetchUserInfo(ProfileActivityD.this);
-        if (user != null) {
+        FirebaseFirestore.getInstance().collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            User user = task.getResult().toObject(User.class);
+                            fullname.setText(user.getName());
+                            phonenumber.setText(user.getPhone());
+                            email.setText(user.getEmail());
+                        }
+                    }
+                });
+//        User user = Utils.fetchUserInfo(ProfileActivityD.this);
+//        if (user != null) {
+//            fullname.setText(user.getName());
+//            phonenumber.setText(user.getPhone());
+//            email.setText(user.getEmail());
+//        }
+
+    final DatabaseReference RootRef;
+    RootRef =FirebaseDatabase.getInstance().
+
+    getReference();
+
+        RootRef.addValueEventListener(new
+
+    ValueEventListener() {
+        @Override
+        public void onDataChange (@NonNull DataSnapshot dataSnapshot){
+            String UID = firebaseAuth.getCurrentUser().getUid();
+            User user = dataSnapshot.child("Users").child(UID).getValue(User.class);
+            Prevalent.currentOnlineUser = user;
             fullname.setText(user.getName());
             phonenumber.setText(user.getPhone());
             email.setText(user.getEmail());
         }
 
-        save.setOnClickListener(v1 -> {
-            if (validate()) {
-                final FirebaseFirestore db = FirebaseFirestore.getInstance();
-                final DocumentReference docRef = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                User user2 = new User(name, user.getPhone(), email1, FirebaseAuth.getInstance().getCurrentUser().getUid(), gender1, birth, 1, address);
-                docRef.set(user2, SetOptions.merge()).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Utils.storeUserInfo(user2, ProfileActivityD.this);
-                        Toast.makeText(ProfileActivityD.this, "Your data has been updated", Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        });
-    }
+        @Override
+        public void onCancelled (@NonNull DatabaseError databaseError){
+        }
+    });
+        save.setOnClickListener(v1 ->
+
+    {
+        if (validate()) {
+            final FirebaseFirestore db = FirebaseFirestore.getInstance();
+            final DocumentReference docRef = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            User user2 = new User(name, user.getPhone(), email1, FirebaseAuth.getInstance().getCurrentUser().getUid(), gender1, birth, 1, address);
+            docRef.set(user2, SetOptions.merge()).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Utils.storeUserInfo(user2, ProfileActivityD.this);
+                    Toast.makeText(ProfileActivityD.this, "Your data has been updated", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    });
+}
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable final Intent data) {
         if (requestCode == AUTOCOMPLETE_ACTIVITY) {

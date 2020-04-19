@@ -65,6 +65,7 @@ public class MenuActivity extends AppCompatActivity implements RecyclerViewClick
             Intent intent = new Intent(MenuActivity.this, CartActivity.class);
             intent.putExtra("order", carts);
             intent.putExtra("menus", menus);
+            intent.putExtra("restaurantName", restaurantName);
 //            FirebaseFirestore.getInstance().collection("Orders").add(odr).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
 //                @Override
 //                public void onComplete(@NonNull Task<DocumentReference> task) {

@@ -1,8 +1,5 @@
 package in.dete.oops;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,6 +12,9 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.libraries.places.api.Places;
@@ -40,9 +40,9 @@ public class ProfileActivity extends AppCompatActivity {
     private String gender;
     private FirebaseUser firebaseUser;
     private User user;
-    private EditText   email, phonenumber;
+    private EditText email, phonenumber;
     private TextView save, birthdate, addId;
-    private String name, phone, email1, birth,address, gender1;
+    private String name, phone, email1, birth, address, gender1;
     ImageView btnBack;
     private EditText aptAddress;
     public static int AUTOCOMPLETE_ACTIVITY = 180;
@@ -60,9 +60,8 @@ public class ProfileActivity extends AppCompatActivity {
         else gender = ((RadioButton) findViewById(val)).getText().toString();
 
 
-
         home = findViewById(R.id.home);
-        search = findViewById(R.id.search);
+        search = findViewById(R.id.search1);
         cart = findViewById(R.id.cart);
         profile = findViewById(R.id.profile);
 
@@ -100,7 +99,6 @@ public class ProfileActivity extends AppCompatActivity {
                         .build(ProfileActivity.this), AUTOCOMPLETE_ACTIVITY));
 
 
-
         final Calendar myCalendar = Calendar.getInstance();
         final DatePickerDialog.OnDateSetListener dplistener = new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -118,6 +116,7 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
+
         User user = Utils.fetchUserInfo(ProfileActivity.this);
         if (user != null) {
             fullname.setText(user.getName());
@@ -125,6 +124,22 @@ public class ProfileActivity extends AppCompatActivity {
             email.setText(user.getEmail());
         }
 
+//        FirebaseFirestore.getInstance().collection("users").get()
+//                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                        if (task.getResult().getDocuments().size() != 0) {
+//                            for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+//                                if (doc.toString().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+//                                    user = doc.toObject(User.class);
+//                                    fullname.setText(user.getName());
+//                                    phonenumber.setText(user.getPhone());
+//                                    email.setText(user.getEmail());
+//                                }
+//                            }
+//                        }
+//                    }
+//                });
         save.setOnClickListener(v1 -> {
             if (validate()) {
                 final FirebaseFirestore db = FirebaseFirestore.getInstance();

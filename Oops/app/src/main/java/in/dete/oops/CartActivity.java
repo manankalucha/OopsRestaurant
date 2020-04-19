@@ -29,6 +29,7 @@ public class CartActivity extends AppCompatActivity implements RecyclerViewClick
     private double total;
     private ArrayList<Menu> menuArrayList;
     private TextView itemCount, totalPrice, viewCart;
+    private String restuarantName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,8 @@ public class CartActivity extends AppCompatActivity implements RecyclerViewClick
 
         cartArrayList = getIntent().getParcelableArrayListExtra("order");
         menuArrayList = getIntent().getParcelableArrayListExtra("menus");
+        restuarantName = getIntent().getStringExtra("restaurantName");
+
         itemCount = findViewById(R.id.itemCount);
         totalPrice = findViewById(R.id.totalPrice);
         viewCart = findViewById(R.id.viewCart);
@@ -49,8 +52,10 @@ public class CartActivity extends AppCompatActivity implements RecyclerViewClick
         recyclerView.setLayoutManager(new LinearLayoutManager(CartActivity.this));
         recyclerView.setAdapter(myAdapter);
 
-        HashMap<String, ArrayList<Cart>> cart = new HashMap<>();
+        HashMap<String, Object> cart = new HashMap<>();
         cart.put("order", cartArrayList);
+        cart.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        cart.put("restaurantName", restuarantName);
         btnConfirm.setOnClickListener(v -> {
             FirebaseFirestore.getInstance().collection("Orders").add(cart).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                 @Override

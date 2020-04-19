@@ -64,6 +64,7 @@ public class LoginActivity extends AppCompatActivity implements GestureDetector.
     private TextView tvForgotPassword, tvSignUp;
     private ProgressDialog progressDialog;
     private FirebaseAuth firebaseAuth;
+    private int selection;
     private CheckBox cbRemember;
     private CallbackManager mFacebookManager;
     private FirebaseUser currentUser;
@@ -222,7 +223,7 @@ public class LoginActivity extends AppCompatActivity implements GestureDetector.
                             Toast.makeText(LoginActivity.this, "Signed In successfully", Toast.LENGTH_SHORT).show();
                             progressDialog.dismiss();
                             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                            //intent.putExtra("update", true);
+                            intent.putExtra("update", true);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                         } else {
@@ -258,7 +259,7 @@ public class LoginActivity extends AppCompatActivity implements GestureDetector.
                             FirebaseUser user = firebaseAuth.getCurrentUser();
                             ivFacebook.setEnabled(true);
                             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                            //intent.putExtra("update", true);
+                            intent.putExtra("update", true);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             // updateUI();
@@ -342,10 +343,10 @@ public class LoginActivity extends AppCompatActivity implements GestureDetector.
                     if (firebaseAuth.getCurrentUser().isEmailVerified()) {
                         progressDialog.dismiss();
                         Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_LONG).show();
-                        retrieveData();
                         startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                    } else {
-                        progressDialog.dismiss();
+//
+                    }
+                    else { progressDialog.dismiss();
                         Toast.makeText(LoginActivity.this, "Please verify your email", Toast.LENGTH_LONG).show();
                     }
 
@@ -369,24 +370,11 @@ public class LoginActivity extends AppCompatActivity implements GestureDetector.
         });
     }
 
-    private void retrieveData() {
-        final DatabaseReference RootRef;
-        RootRef = FirebaseDatabase.getInstance().getReference();
-
-        RootRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                String UID = firebaseAuth.getCurrentUser().getUid();
-                User user = dataSnapshot.child("Users").child(UID).getValue(User.class);
-                Prevalent.currentOnlineUser = user;
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
+//    private void retrieveData() {
+//       User user = Utils.fetchUserInfo(LoginActivity.this);
+//       selection = user.getSelection();
+//
+//    }
 
     @Override
     public boolean onDown(MotionEvent motionEvent) {

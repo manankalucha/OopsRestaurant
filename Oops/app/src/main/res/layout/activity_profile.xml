@@ -257,7 +257,7 @@
             android:gravity="center"
             />
         <TextView
-            android:id="@+id/search"
+            android:id="@+id/search1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"

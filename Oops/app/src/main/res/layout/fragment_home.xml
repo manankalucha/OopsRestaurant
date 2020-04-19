@@ -14,7 +14,7 @@
         android:layout_height="match_parent">
 
         <EditText
-            android:id="@+id/search"
+            android:id="@+id/search1"
             android:layout_width="0dp"
             android:layout_height="36dp"
             android:layout_marginStart="24dp"
@@ -34,9 +34,9 @@
             android:layout_height="24dp"
             android:layout_marginEnd="12dp"
             android:src="@drawable/ic_filter"
-            app:layout_constraintBottom_toBottomOf="@id/search"
+            app:layout_constraintBottom_toBottomOf="@id/search1"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/search" />
+            app:layout_constraintTop_toTopOf="@+id/search1" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/card"
@@ -51,7 +51,7 @@
             app:cardCornerRadius="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/search">
+            app:layout_constraintTop_toBottomOf="@id/search1">
 
             <TextView
                 android:layout_width="wrap_content"

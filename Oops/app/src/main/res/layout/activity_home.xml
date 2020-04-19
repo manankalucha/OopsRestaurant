@@ -16,7 +16,7 @@
 
                 <EditText
                     app:layout_constraintTop_toBottomOf="@id/add"
-                    android:id="@+id/search"
+                    android:id="@+id/search1"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_marginStart="24dp"
@@ -36,34 +36,35 @@
                     android:layout_height="24dp"
                     android:layout_marginEnd="12dp"
                     android:src="@drawable/ic_filter"
-                    app:layout_constraintBottom_toBottomOf="@id/search"
+                    app:layout_constraintBottom_toBottomOf="@id/search1"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/search" />
+                    app:layout_constraintTop_toTopOf="@+id/search1" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginEnd="24dp"
-                    android:background="#ffffff"
-                    android:elevation="8dp"
-                    android:padding="8dp"
-                    app:cardCornerRadius="8dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/search">
+<!--                <androidx.cardview.widget.CardView-->
+<!--                    android:id="@+id/card"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginStart="24dp"-->
+<!--                    android:layout_marginTop="24dp"-->
+<!--                    android:layout_marginEnd="24dp"-->
+<!--                    android:background="#ffffff"-->
+<!--                    android:elevation="8dp"-->
+<!--                    android:padding="8dp"-->
+<!--           >-->
 
                     <TextView
+                        android:id="@+id/welcome"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:gravity="center"
                         android:padding="8dp"
                         android:text="Welcome"
-                        android:textSize="72dp" />
-                </androidx.cardview.widget.CardView>
+                        android:textSize="72dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/search1"/>
+<!--                </androidx.cardview.widget.CardView>-->
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerView"
@@ -71,7 +72,7 @@
                     android:layout_height="wrap_content"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/card"
+                    app:layout_constraintTop_toBottomOf="@id/welcome"
                     android:layout_marginStart="24dp"
                     android:layout_marginTop="24dp"
                     android:layout_marginEnd="24dp"

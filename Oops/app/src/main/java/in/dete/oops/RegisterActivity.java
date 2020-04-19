@@ -19,6 +19,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.gson.Gson;
@@ -53,7 +58,7 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
         btnUser = findViewById(R.id.btnUser);
         btnDeliveryBoy = findViewById(R.id.btnDeliveryBoy);
         selection = 1;
-        //update = getIntent().getBooleanExtra("update", false);
+        update = getIntent().getBooleanExtra("update", false);
 
         tvLogIn = findViewById(R.id.tvLogIn);
         gestureDetector = new GestureDetector(this);
@@ -62,8 +67,6 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
         progressDialog = new ProgressDialog(this);
 
         btnRegister = findViewById(R.id.btnSignUp);
-
-
 
         btnRegister.setOnClickListener(v -> {
             CreateAccount();
@@ -78,6 +81,13 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
             startActivity(intent);
         });
+
+        if (update) {
+            findViewById(R.id.holderEmail).setVisibility(View.GONE);
+            findViewById(R.id.holderPwd).setVisibility(View.GONE);
+            findViewById(R.id.holderPwd2).setVisibility(View.GONE);
+        }
+
     }
 
     private void CreateAccount() {
@@ -106,6 +116,7 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
                                         if (task.isSuccessful()) {
                                             startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                                             UpdateDetails(fullName, user_email, phone, user_password, selection);
+
                                             Toast.makeText(RegisterActivity.this, "Registered successfully, Please verify your email.", Toast.LENGTH_LONG).show();
                                         } else {
                                             Toast.makeText(RegisterActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
@@ -122,6 +133,7 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
             Toast.makeText(this, "Please enter all the details", Toast.LENGTH_SHORT).show();
         }
     }
+
     //    private boolean ValidatePhone(String phone) {
 //        final boolean[] flag = {false};
 //        final DatabaseReference rootref = FirebaseDatabase.getInstance().getReference();
@@ -149,29 +161,95 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
 //
     private void UpdateDetails(String fullName, String user_email, String phone, String user_password, int type) {
 
-//        User user = new User(user_email, fullName, user_password, phone, type);
-//        FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(user);
+        final DatabaseReference rootRef;
+        rootRef = FirebaseDatabase.getInstance().getReference();
+
+        rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                if (!(dataSnapshot.child("Users").child(phone).exists())) {
+                    HashMap<String, Object> userDataMap = new HashMap<>();
+                    userDataMap.put("phone", phone);
+                    userDataMap.put("password", user_password);
+                    userDataMap.put("name", fullName);
+                    userDataMap.put("email", user_email);
+                    userDataMap.put("type", selection);
+
+                    rootRef.child("Users").child(phone).updateChildren(userDataMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+
+                            if (task.isSuccessful()) {
+                                Toast.makeText(RegisterActivity.this, "Congratulations, your account is created", Toast.LENGTH_SHORT).show();
+
+                            } else {
+                                Toast.makeText(RegisterActivity.this, "Network error, please try again", Toast.LENGTH_SHORT).show();
+
+                            }
+                        }
+                    });
+
+                } else {
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         HashMap<String, Object> map = new HashMap<>();
         map.put("n", fullName);
         map.put("e", user_email);
+        map.put("p", user_password);
         map.put("m", phone);
         map.put("s", type);
-        FirebaseFirestore.getInstance().collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .set(map, SetOptions.merge())
-                .addOnCompleteListener(task -> {
-                    progressDialog.dismiss();
-                    if(task.isSuccessful()){
-                        User userData = new User(fullName, phone, user_email, FirebaseAuth.getInstance().getCurrentUser().getUid(), null , null, type, null);
-                        userData.setUid(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                        Utils.storeUserInfo(userData, RegisterActivity.this);
-                        Intent intent = new Intent(RegisterActivity.this, HomeActivity.class);
-                        intent.putExtra("user", userData);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);
-                    }
-                    else Toast.makeText(RegisterActivity.this, "Couldn't setup profile, try again later", Toast.LENGTH_SHORT).show();
-                });
+        User userData = new User(fullName, phone, user_email, FirebaseAuth.getInstance().getCurrentUser().getUid(), null, user_password, type, null);
+        String json = new Gson().toJson(userData);
+
+        getSharedPreferences("MyPrefs", MODE_PRIVATE).
+
+                edit().
+
+                putString("loggedInUser", json).
+
+                apply();
+        userData.setUid(FirebaseAuth.getInstance().
+
+                getCurrentUser().
+
+                getUid());
+        FirebaseFirestore.getInstance().
+
+                collection("users").
+
+                document(FirebaseAuth.getInstance().
+
+                        getCurrentUser().
+
+                        getUid())
+                .
+
+                        set(map, SetOptions.merge())
+                .
+
+                        addOnCompleteListener(task ->
+
+                        {
+                            progressDialog.dismiss();
+                            if (task.isSuccessful()) {
+                                Utils.storeUserInfo(userData, RegisterActivity.this);
+                                Intent intent = new Intent(RegisterActivity.this, HomeActivity.class);
+                                intent.putExtra("user", userData);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
+                            } else
+                                Toast.makeText(RegisterActivity.this, "Couldn't setup profile, try again later", Toast.LENGTH_SHORT).show();
+                        });
     }
+
 //        HashMap<String, Object> map = new HashMap<>();
 //        map.put("n", fullName);
 //        map.put("e", user_email);
@@ -243,7 +321,8 @@ public class RegisterActivity extends AppCompatActivity implements GestureDetect
     }
 
     @Override
-    public boolean onFling(MotionEvent motionEvent, MotionEvent moveEvent, float velocityX, float velocityY) {
+    public boolean onFling(MotionEvent motionEvent, MotionEvent moveEvent, float velocityX,
+                           float velocityY) {
         boolean result = false;
         float diffX = moveEvent.getX() - motionEvent.getX();
         if (diffX > 100) {

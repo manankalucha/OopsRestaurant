@@ -3,24 +3,16 @@ package in.dete.oops;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.view.Menu;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
-import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
 
@@ -35,6 +27,7 @@ public class HomeActivity extends AppCompatActivity {
     private TextView home, cart, profile, search;
     private RecyclerView recyclerView;
     private RestaurantAdapter myAdapter;
+    TextView welcome;
     private ArrayList<Restaurant> restaurants;
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -48,9 +41,10 @@ public class HomeActivity extends AppCompatActivity {
         pref.edit().putBoolean("isIntroOpened", true).apply();
 
         home = findViewById(R.id.home);
-        search = findViewById(R.id.search);
+        search = findViewById(R.id.search1);
         cart = findViewById(R.id.cart);
         profile = findViewById(R.id.profile);
+        welcome = findViewById(R.id.welcome);
 
         profile.setOnClickListener(v -> {
             startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
@@ -65,10 +59,12 @@ public class HomeActivity extends AppCompatActivity {
 
 
         user = (User) getIntent().getSerializableExtra("user");
+       // welcome.setText(user.getName());
         if(user==null){
             String userInfo = getSharedPreferences("MyPrefs",MODE_PRIVATE).getString("loggedInUser","");
             if(!userInfo.equals("")) user = new Gson().fromJson(userInfo, User.class);
         }
+
 
         restaurants = new ArrayList<>();
 
