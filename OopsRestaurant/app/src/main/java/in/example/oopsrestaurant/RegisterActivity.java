@@ -1,21 +1,24 @@
 package in.example.oopsrestaurant;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.ebanx.swipebtn.SwipeButton;
 import com.google.android.gms.common.api.Status;
+import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
@@ -39,20 +42,29 @@ public class RegisterActivity extends AppCompatActivity {
     public static int AUTOCOMPLETE_ACTIVITY = 180;
     private GeoPoint aptLoc;
     private ImageView imageuploader;
-    private String name;
+    private String name, typeofFood;
     private SwipeButton interest;
     private ArrayList<String> url;
     private String adr;
+    private Button btnOrder;
     private ProgressDialog progressDialog;
     private StorageReference storageReference;
     private String uid;
+    private RadioGroup group;
+    private int val;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        etName= findViewById(R.id.etName);
+        btnOrder = findViewById(R.id.btnOrder);
+
+        btnOrder.setOnClickListener(v -> {
+            startActivity(new Intent(RegisterActivity.this, OrderActivity.class));
+        });
+
+        etName = findViewById(R.id.etName);
         aptAddress = findViewById(R.id.aptAddress);
         interest = findViewById(R.id.showInterest);
         imageuploader = findViewById(R.id.imageuploader);
@@ -60,30 +72,32 @@ public class RegisterActivity extends AppCompatActivity {
         storageReference = FirebaseStorage.getInstance().getReference("Uploads");
         url = new ArrayList<>();
 
-        name = etName.getText().toString().trim();
-//        List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
-//        Intent autocompleteIntent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields).build(getContext());
-//        try {
-//            Places.initialize(getContext(), "AIzaSyCsTJ7aqC8aL0vdjFal4dob2NRp3BAxzj0");
-//        }
-//        catch (Exception e){}
-        aptAddress.setOnClickListener(v ->{
-            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
-            Intent autocompleteIntent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields).build(this);
-        });
+        List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
+        try {
+            Places.initialize(RegisterActivity.this, "AIzaSyBXpHTrurGbpDlb6RXy5AisDcQkKxWiXyU");
+        } catch (Exception e) {
+        }
+        aptAddress.setOnClickListener(v ->
+                startActivityForResult(new Autocomplete.IntentBuilder(
+                        AutocompleteActivityMode.OVERLAY, fields)
+                        .setCountry("IN")
+                        .build(RegisterActivity.this), AUTOCOMPLETE_ACTIVITY));
 //                startActivityForResult(new Autocomplete.IntentBuilder(
 //                        AutocompleteActivityMode.OVERLAY, fields)
 //                        .setCountry("IN")
 //                        .build(getContext()), AUTOCOMPLETE_ACTIVITY));
 
         interest.setOnActiveListener(() -> {
-            HashMap<String, Object> address = new HashMap<>();
-            address.put("add", adr);
-            address.put("name", name);
-            FirebaseFirestore.getInstance().collection("Restaurants").document("profile").set(address);
-            Intent intent = new Intent(RegisterActivity.this, DishesActivity.class);
-            intent.putExtra("name", name);
-            startActivity(intent);
+            if (validate()) {
+                HashMap<String, Object> address = new HashMap<>();
+                address.put("address", adr);
+                address.put("name", name);
+                address.put("type", typeofFood);
+                FirebaseFirestore.getInstance().collection("Restaurants").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(address);
+                Intent intent = new Intent(RegisterActivity.this, DishesActivity.class);
+                intent.putExtra("name", name);
+                startActivity(intent);
+            }
         });
 
         imageuploader.setOnClickListener(v -> {
@@ -91,6 +105,12 @@ public class RegisterActivity extends AppCompatActivity {
                     .setGuidelines(CropImageView.Guidelines.ON)
                     .start(RegisterActivity.this);
         });
+
+        group = findViewById(R.id.gender);
+        val = group.getCheckedRadioButtonId();
+        if (val == -1) typeofFood = "";
+        else typeofFood = ((RadioButton) findViewById(val)).getText().toString();
+
     }
 
     @Override
@@ -131,6 +151,7 @@ public class RegisterActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Place place = Autocomplete.getPlaceFromIntent(data);
                 aptAddress.setText(place.getName());
+                adr = place.getAddress();
                 aptLoc = new GeoPoint(place.getLatLng().latitude, place.getLatLng().longitude);
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 Status status = Autocomplete.getStatusFromIntent(data);
@@ -140,5 +161,23 @@ public class RegisterActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    private boolean validate() {
+
+        boolean result = false;
+
+        String name = etName.getText().toString().trim();
+        String address = aptAddress.getText().toString().trim();
+        String type = typeofFood;
+
+        if (name.isEmpty()) {
+            Toast.makeText(RegisterActivity.this, "Please enter full name", Toast.LENGTH_SHORT).show();
+        } else if (address.isEmpty()) {
+            Toast.makeText(RegisterActivity.this, "Please enter the address", Toast.LENGTH_SHORT).show();
+        } else {
+            result = true;
+        }
+        return result;
+
+    }
 
 }
